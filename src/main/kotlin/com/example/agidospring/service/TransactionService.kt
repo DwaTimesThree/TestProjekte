@@ -8,6 +8,7 @@ import com.example.agidospring.UserType
 import com.example.agidospring.enum.DBType
 import com.example.agidospring.enum.ErrorMessage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.ZonedDateTime
@@ -15,9 +16,10 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class TransactionService {
+    @Autowired
+    lateinit var userService: UserService
 
-
-    val zonedDateTimeAdd="T00:00:00+01:00"
+    val zonedDateTimeAdd = "T00:00:00+01:00"
 
     @Autowired
     lateinit var externalServices: ExternalServices
@@ -35,7 +37,8 @@ class TransactionService {
     fun requestWithdrawal(appUser: AppUser, amount: BigDecimal): String {
         if (!appUser.isAllowedToWithdraw()) return ErrorMessage.NoRightsToWithdraw.send()
         var transaction = Transaction(TransactionType.Withdrawal, amount, appUser).apply {
-            status = if (appUser.getBalance() < amount) TransactionStatus.Failed else TransactionStatus.PermissionPending
+            status =
+                if (appUser.getBalance() < amount) TransactionStatus.Failed else TransactionStatus.PermissionPending
         }
         transaction.writeTransactionIntoDB(DBType.Memory)
         return transaction.status.name//TODO
@@ -53,8 +56,7 @@ class TransactionService {
     }
 
 
-
-    fun MutableList<Transaction>.checkValidityOfWithdrawalRequests():MutableList<Transaction> {
+    fun MutableList<Transaction>.checkValidityOfWithdrawalRequests(): MutableList<Transaction> {
         this.forEach {
             if (it.amount > it.actor.getBalance()) {
                 it.apply { status = TransactionStatus.Failed }
@@ -66,15 +68,20 @@ class TransactionService {
 
     fun showMyPendingWithdrawals(user: AppUser): MutableList<Transaction>? {
         if (user.userType != UserType.Customer) return null
-        return  transactions.filter { transaction -> !transaction.permissionGranted && transaction.status == TransactionStatus.PermissionPending && transaction.actor.isSameUserAs(user) }.toMutableList().checkValidityOfWithdrawalRequests()
+        return transactions.filter { transaction ->
+            !transaction.permissionGranted && transaction.status == TransactionStatus.PermissionPending && transaction.actor.isSameUserAs(
+                user
+            )
+        }.toMutableList().checkValidityOfWithdrawalRequests()
 
     }
+
     fun showAllPendingWithdrawals(user: AppUser): MutableList<Transaction>? {
         if (user.userType != UserType.ServiceEmployee) return null
-       return  transactions.filter { transaction -> !transaction.permissionGranted && transaction.status == TransactionStatus.PermissionPending }.toMutableList().checkValidityOfWithdrawalRequests()
+        return transactions.filter { transaction -> !transaction.permissionGranted && transaction.status == TransactionStatus.PermissionPending }
+            .toMutableList().checkValidityOfWithdrawalRequests()
 
     }
-
 
 
     fun authorizeWithdrawal(appUser: AppUser, id: String, transactionUser: AppUser) {
@@ -97,12 +104,12 @@ class TransactionService {
             DBType.Memory -> {
 
                 transactions.find { (it.transactionType == TransactionType.Deposit || it.transactionType == TransactionType.Withdrawal) && this.time == it.time }
-                        ?.let {
-                            this.time = ZonedDateTime.now()
-                            this.writeTransactionIntoDB(dbType)
-                            return
+                    ?.let {
+                        this.time = ZonedDateTime.now()
+                        this.writeTransactionIntoDB(dbType)
+                        return
 
-                        }
+                    }
                 addTransaction(this)
 
 
@@ -115,34 +122,24 @@ class TransactionService {
     }
 
 
-    fun String.YYYYMMDDtoParsableZonedDateTime():ZonedDateTime?
-    {
-        return ZonedDateTime.parse(this+zonedDateTimeAdd, DateTimeFormatter.ISO_ZONED_DATE_TIME)?:null
+    fun String.YYYYMMDDtoParsableZonedDateTime(): ZonedDateTime? {
+        return ZonedDateTime.parse(this + zonedDateTimeAdd, DateTimeFormatter.ISO_ZONED_DATE_TIME) ?: null
     }
 
-    fun getAllTransactionsOf(user: AppUser,appUser: AppUser, from: String,to: String):MutableList<Transaction>?
-    {
+    fun getAllTransactionsOf(user: AppUser, appUser: AppUser, from: String, to: String): MutableList<Transaction>? {
         if (user.userType != UserType.ServiceEmployee) return null
-        var start =from.YYYYMMDDtoParsableZonedDateTime()?:return null
-        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?:return null
-       return  transactions.filter { transaction -> transaction.actor.isSameUserAs(appUser)&& transaction.time >= start && transaction.time <= end  }.toMutableList()
-    }
-
-    fun getAllTransactionsOf(user:AppUser, appUser:AppUser):MutableList<Transaction>? {
-        if (user.userType != UserType.ServiceEmployee) return null
-        return transactions.filter { it.actor.isSameUserAs(appUser) }.asReversed().toMutableList()
+        var start = from.YYYYMMDDtoParsableZonedDateTime() ?: return null
+        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?: return null
+        return transactions.filter { transaction ->
+            transaction.fromToUserFilter(appUser.userId, start, end)
+        }
+            .toMutableList()
     }
 
 
-    fun showMyTransactions(appUser: AppUser,from: String,to:String):MutableList<Transaction>?
-    {
-        var start =from.YYYYMMDDtoParsableZonedDateTime()?:return null
-        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?:return null
-       return transactions.filter { transaction -> transaction.actor.isSameUserAs(appUser)&& transaction.time >= start && transaction.time <= end  }.toMutableList()
-    }
 
     fun showMyTransactions(user: AppUser): MutableList<Transaction> {
-        return transactions.filter { transaction -> transaction.actor.isSameUserAs(user)}.asReversed().toMutableList()
+        return transactions.filter { transaction -> transaction.actor.isSameUserAs(user) }.asReversed().toMutableList()
     }
 
 
@@ -158,87 +155,74 @@ class TransactionService {
     }
 
 
-    fun sumOfAllUserTransactionsInPeriod(from: String, to: String) {
-        var sum = BigDecimal.ZERO
-        var add = "T00:00:00+01:00"
-        var fromx = from + add
-        var tox = to + add
-        var start = ZonedDateTime.parse(fromx, DateTimeFormatter.ISO_ZONED_DATE_TIME) ?: return
-        var end = ZonedDateTime.parse(tox, DateTimeFormatter.ISO_ZONED_DATE_TIME) ?: return
-        end = end.plusDays(1)
 
-        transactions.filter { transaction -> transaction.time >= start && transaction.time <= end }.forEach {
-            sum += it.amount
+
+    fun Transaction.fromToUserFilter(
+        userId: String? = null,
+        from: ZonedDateTime? = null,
+        to: ZonedDateTime? = null
+    ): Boolean {
+        userId ?: from ?: to?.let { return time <= to } ?: return true
+        userId ?: to ?: from?.let { return time >= from }
+        userId ?: return time <= to && time >= from
+        from ?: to?.let { return time <= to && userId == actor.userId } ?: return userId == actor.userId
+        to ?: from?.let { return time >= from && userId == actor.userId } ?: return userId == actor.userId
+        return time >= from && userId == actor.userId && time <= to
+    }
+
+    fun transactionsFromUserFromTo(
+        appUser: AppUser,
+        from: String? = null,
+        to: String? = null
+    ): MutableList<Transaction>? {
+        return transactionsFromUserFromTo(appUser.userId, from, to)
+    }
+
+    fun transactionsFromUserFromTo(userId: String? = null, from: String?, to: String?): MutableList<Transaction>? {
+        var start: ZonedDateTime? = null
+        var end: ZonedDateTime? = null
+        from?.let { start = it.YYYYMMDDtoParsableZonedDateTime() ?: return null }
+        to?.let { end = it.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?: return null }
+        return transactionsFromUserFromTo(userId, start, end)
+    }
+
+    fun transactionsFromUserFromTo(
+        userId: String? = null,
+        from: ZonedDateTime? = null,
+        to: ZonedDateTime? = null
+    ): MutableList<Transaction>? {
+        return transactions.filter { transaction -> transaction.fromToUserFilter(userId, from, to) }.toMutableList()
+    }
+
+
+    fun getTransactionsMetaFunction(
+        user: User,
+        ofWhomId: String?,
+        from: String?,
+        to: String?,
+        sum: Boolean? = false
+    ): MutableList<Transaction>? {
+        var requester = userService.identify(user) ?: return null
+        //check Rights
+        if (requester.userType == UserType.Customer && (ofWhomId != requester.userId && ofWhomId != null)) return null
+        if (requester.userType == UserType.Customer) {
+            return transactionsFromUserFromTo(requester.userId, from, to)
         }
-        println(sum)
-    }
-
-    fun sumOfAllTransactions(serviceUser: AppUser):BigDecimal?
-    {
-        if(serviceUser.userType!=UserType.ServiceEmployee)return null
-        var sum = BigDecimal.ZERO
-        transactions.forEach { sum+=it.amount }
-        return sum
-    }
-
-    fun sumOfAllTransactions(serviceUser: AppUser,from: String,to:String):BigDecimal?
-    {
-
-        if(serviceUser.userType!=UserType.ServiceEmployee)return null
-        var start =from.YYYYMMDDtoParsableZonedDateTime()?:return null
-        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?:return null
-        var sum = BigDecimal.ZERO
-        transactions.filter {  transaction -> transaction.time >= start && transaction.time <= end  }.forEach { sum+=it.amount }
-        return sum
-    }
-
-
-    fun sumOfAllMyTransactions(user: AppUser): String {
-        var sum = BigDecimal.ZERO
-        transactions.filter { transaction -> user.userId == transaction.actor.userId }.forEach {
-            sum += it.amount
+        //determine Whose
+        if (requester.userType == UserType.ServiceEmployee) {
+            var whom: AppUser? = null
+            ofWhomId?.let {whom = userService.getAppUserById(it)?: return null } ?: return transactionsFromUserFromTo(
+                null,
+                from,
+                to
+            )
+            return transactionsFromUserFromTo(ofWhomId, from, to)
         }
-        return "$sum"
+        return null
     }
 
-
-
-    fun sumOfMyTransactionsInPeriod(from: String, to: String, user: AppUser): String {
-
-        var sum = BigDecimal.ZERO
-        var start =from.YYYYMMDDtoParsableZonedDateTime()?:return return ErrorMessage.ParseErrorYYYY_MM_DD.send(from)
-        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?:return ErrorMessage.ParseErrorYYYY_MM_DD.send(to)
-
-        transactions.filter { transaction -> transaction.time >= start && transaction.time <= end && user.userId == transaction.actor.userId }
-                .forEach {
-                    sum += it.amount
-
-                }
-        return "$sum"
-    }
-
-
-    fun sumOfOtherUserTransactions(serviceUser: AppUser,appUser: AppUser):BigDecimal?
-    {
-        if(serviceUser.userType!=UserType.ServiceEmployee)return null
-        var sum = BigDecimal.ZERO
-        transactions.filter { transaction -> appUser.userId == transaction.actor.userId }.forEach {
-            sum+=it.amount
-        }
-        return sum
-    }
-
-    fun sumOfOtherUserTransactions(serviceUser: AppUser,appUser: AppUser,from: String,to:String):BigDecimal?
-    {
-        if(serviceUser.userType!=UserType.ServiceEmployee)return null
-        var start =from.YYYYMMDDtoParsableZonedDateTime()?:return return null
-        var end = to.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?:return null
-
-        var sum = BigDecimal.ZERO
-        transactions.filter { transaction -> appUser.userId == transaction.actor.userId  &&  transaction.time >= start && transaction.time <= end  }.forEach {
-            sum+=it.amount
-        }
-        return sum
-    }
 
 }
+
+
+

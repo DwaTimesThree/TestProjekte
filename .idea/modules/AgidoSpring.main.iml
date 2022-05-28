@@ -4,12 +4,15 @@
     <facet type="web" name="Web">
       <configuration>
         <webroots />
+        <sourceRoots />
       </configuration>
     </facet>
     <facet type="jpa" name="JPA">
       <configuration>
         <setting name="validation-enabled" value="true" />
-        <datasource-mapping />
+        <datasource-mapping>
+          <factory-entry name="AgidoSpring.main" />
+        </datasource-mapping>
         <naming-strategy-map />
       </configuration>
     </facet>

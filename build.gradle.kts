@@ -22,7 +22,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.data:spring-data-jpa:2.7.0")
-
     implementation("com.google.guava:guava:31.1-jre")
   //  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   //  implementation("org.springframework.boot:spring-boot-starter-data-jpa")

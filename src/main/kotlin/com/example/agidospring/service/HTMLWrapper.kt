@@ -1,6 +1,7 @@
 package com.example.agidospring.service
 
 import Transaction
+import TransactionType
 import com.example.agidospring.UserType
 import com.example.agidospring.enum.ErrorMessage
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,11 +29,21 @@ class HTMLWrapper {
     }
 
     fun registerCustomer(username: String, password: String): String {
-        return "Kunde \"$username\" erfolgreich angelegt.<br>${userService.registerNewUser(username, password, UserType.Customer).print()}"
+        return "Kunde \"$username\" erfolgreich angelegt.<br>${
+            userService.registerNewUser(
+                username,
+                password,
+                UserType.Customer
+            ).print()
+        }"
     }
 
     fun registerServiceEmployee(username: String, password: String, userType: UserType): String {
-        return "Service-Mitarbeiter $username erfolgreich angelegt.<br>" + userService.registerNewUser(username, password, UserType.ServiceEmployee).print()
+        return "Service-Mitarbeiter $username erfolgreich angelegt.<br>" + userService.registerNewUser(
+            username,
+            password,
+            UserType.ServiceEmployee
+        ).print()
     }
 
     fun deposit(user: User, amount: BigDecimal): String {
@@ -46,16 +57,12 @@ class HTMLWrapper {
         return transactionService.requestWithdrawal(appUser, amount)
     }
 
-    fun showPendingWithdrawals(user: User): String {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        return transactionService.showAllPendingWithdrawals(appUser).htmlWrapTransactionList()
-    }
 
-    fun MutableList<Transaction>?.htmlWrapTransactionList():String
-    {
+
+    fun MutableList<Transaction>?.htmlWrapTransactionList(): String {
         return this?.let { list ->
             return "<table>" + if (list.isNotEmpty()) {
-                list[0].htmlTableHeaders()+list.joinToString (separator = ""){ it.htmlTableRowPrint() }
+                list[0].htmlTableHeaders() + list.joinToString(separator = "") { it.htmlTableRowPrint() }
             } else {
                 ErrorMessage.NoPendingWithdrawalsFound.send()
             } + "</table>"
@@ -68,6 +75,10 @@ class HTMLWrapper {
 
     }
 
+    fun showPendingWithdrawals(user: User): String {
+        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
+        return transactionService.showAllPendingWithdrawals(appUser).htmlWrapTransactionList()
+    }
 
     fun authorizeWithdrawal(user: User, transaction: Transaction): String {
         var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
@@ -75,94 +86,68 @@ class HTMLWrapper {
         return showPendingWithdrawals(user)
     }
 
-    fun authorizeWithdrawal(user: User,
-                            transactionId: String)
+    fun authorizeWithdrawal(
+        user: User,
+        transactionId: String
+    )
             : String {
         var transaction = transactionService.getTransactionById(transactionId)
-                ?: return ErrorMessage.NoSuchTransactionFound.send(transactionId)
+            ?: return ErrorMessage.NoSuchTransactionFound.send(transactionId)
         return authorizeWithdrawal(user, transaction)
 
     }
 
     fun sortAllCustomersByAmountOfMoney(user: User): String {
         var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var ret = "<table>"
-       ret+= userService.sortAllCustomersByAmountOfMoney(appUser)?.let { list ->
-           list.joinToString(separator = "") { "<tr><td>${it.name}</td><td>${it.getBalance()}</td></tr>" }
-        }?:ErrorMessage.NoRights.send()
+        var ret = "<table><tr><th>Name</th><th>Kontostand</th><th>UserId</th></tr>"
+        ret += userService.sortAllCustomersByAmountOfMoney(appUser)?.let { list ->
+            list.joinToString(separator = "") { "<tr><td>${it.name}</td><td>${it.getBalance()}</td><td>${it.userId}</td></tr>" }
+        } ?: ErrorMessage.NoRights.send()
         return "$ret</table>"
     }
 
 
-    fun showMyTransactions(user: User): String {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        return transactionService.showMyTransactions(appUser).htmlWrapTransactionList()
+
+    fun showTransactionsMeta(user: User, ofWhomId: String?, from: String?, to: String?): String {
+
+        return  transactionService.getTransactionsMetaFunction(user, ofWhomId, from, to).htmlWrapTransactionList()
     }
 
-    fun showMyTransactions(user: User, from: String, to: String): String {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        return transactionService.showMyTransactions(appUser,from,to).htmlWrapTransactionList()
-    }
+    fun showTransactionSumMeta(user: User, ofWhomId: String?, from: String?, to: String?): String {
+        var depositSum = BigDecimal.ZERO
+        var withdrawalSum = BigDecimal.ZERO
+        var totalSum = BigDecimal.ZERO
 
-    fun showTransactionsOf(user: User,appUserId:String):String
-    {
-        var serviceUser= userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var appUser= userService.getAppUserById(appUserId) ?: return ErrorMessage.NoSuchUser.send()
-      return transactionService.getAllTransactionsOf(serviceUser,appUser)?.htmlWrapTransactionList()?:return ErrorMessage.NoRights.send()
+        var deposits = mutableListOf<Transaction>()
+        var withdrawals = mutableListOf<Transaction>()
+        var transactions = transactionService.getTransactionsMetaFunction(user, ofWhomId, from, to)
 
-
-    }
-    fun showTransactionsOf(user: User,appUserId:String,from:String,to:String):String
-    {
-        var serviceUser= userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var appUser= userService.getAppUserById(appUserId) ?: return ErrorMessage.NoSuchUser.send()
-        return transactionService.getAllTransactionsOf(serviceUser,appUser,from,to)?.htmlWrapTransactionList()?:return ErrorMessage.NoRights.send()
-
-    }
+        transactions?.forEach {
+            if (it.status != TransactionStatus.Finished) return@forEach
 
 
+            when (it.transactionType) {
+                TransactionType.Withdrawal -> {
+                    withdrawals.add(it);withdrawalSum += it.amount
+                    totalSum += it.amount
+                }
+                TransactionType.Deposit -> {
+                    deposits.add(it);depositSum += it.amount
+                    totalSum += it.amount
+                }
+                else -> return@forEach
+            }
 
-    fun showMyTransactionSum(user: User): String {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        return "Gesamtsumme aller Transaktionen von User ${appUser.name} beträgt: ${transactionService.sumOfAllMyTransactions(appUser)}<br>"+transactionService.showMyTransactions(appUser).htmlWrapTransactionList()
+        } ?: return "Fehler aufgetreten oder keine Transaktionen gefunden."
 
-    }
+        var html = "<table><tr><th>alle</th><th>nur Einzahlungen</th><th>nur Auszahlungen</th></tr>"
+        html += "<tr><td>Gesamtsumme: $totalSum</td><td>Gesamtsumme: $depositSum</td><td>Gesamtsumme: $withdrawalSum</td></tr>"
+        html += "<tr><td>${transactions.htmlWrapTransactionList()}</td><td>${deposits.htmlWrapTransactionList()}</td><td></td></tr></table>"
 
-    fun showMyTransactionSum(user: User, from: String, to: String): String {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        return "Gesamtsumme aller Transaktionen im Zeitraum $from bis $to von User ${appUser.name} beträgt: ${transactionService.sumOfMyTransactionsInPeriod(from, to, appUser)}"+transactionService.showMyTransactions(appUser,from,to).htmlWrapTransactionList()
-    }
-
-    fun showTransactionSumOfAllUsers(user:User):String
-    {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-
-        var sum = transactionService.sumOfAllTransactions(appUser)?:return ErrorMessage.NoRights.send()+" or "+ErrorMessage.ParseErrorYYYY_MM_DD.send()
-        return "Gesamtsumme aller Transaktionen beträgt: $sum"
-    }
-    fun showTransactionSumOfAllUsers(user:User,from:String,to:String):String
-    {
-        var appUser = userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var sum = transactionService.sumOfAllTransactions(appUser,from,to)?:return ErrorMessage.NoRights.send()+" or "+ErrorMessage.ParseErrorYYYY_MM_DD.send()
-
-        return "Gesamtsumme aller Transaktionen im Zeitraum $from bis $to beträgt: $sum"
-    }
-    fun showTransactionSumOf(user: User,appUserId:String,from:String,to:String):String
-    {
-      var serviceUser= userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var appUser= userService.getAppUserById(appUserId) ?: return ErrorMessage.NoSuchUser.send()
-        var sum = transactionService.sumOfOtherUserTransactions(serviceUser,appUser,from,to)?:return ErrorMessage.NoRights.send()+" or "+ErrorMessage.ParseErrorYYYY_MM_DD.send()
-        return "Gesamtsumme aller Transaktionen von ${appUser.name} im Zeitraum $from bis $to beträgt: $sum"
+        return html
 
     }
-    fun showTransactionSumOf(user: User,appUserId:String):String
-    {
 
-        var serviceUser= userService.getAppUserById(userService.createId(user)) ?: return ErrorMessage.NoSuchUser.send()
-        var appUser= userService.getAppUserById(appUserId) ?: return ErrorMessage.NoSuchUser.send()
-        var sum = transactionService.sumOfOtherUserTransactions(serviceUser,appUser)?:return ErrorMessage.NoRights.send()+" or "+ErrorMessage.ParseErrorYYYY_MM_DD.send()
-        return "Gesamtsumme aller Transaktionen von ${appUser.name} beträgt: $sum"
-    }
 
     fun welcomePage(user: User): String {
         return "Agido-Testaufgabe<br>Willkommen ${user.username}!"

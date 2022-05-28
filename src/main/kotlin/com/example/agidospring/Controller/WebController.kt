@@ -13,7 +13,7 @@ import java.math.BigDecimal
 
 
 @RestController
-class WebController  {
+class WebController {
 
     @Autowired
     lateinit var htmlWrapper: HTMLWrapper
@@ -30,23 +30,29 @@ class WebController  {
     }
 
     @RequestMapping("\${request.admin.register.serviceemployee.url}")
-    fun registerServiceEmployee(@AuthenticationPrincipal user: User,@RequestParam("name") username: String, @RequestParam("password") password: String): String {
-        user.authorities.find { it.authority=="ROLE_ADMIN" }?:return ErrorMessage.NoRights.send()+user.authorities.joinToString { it.authority+"<br>" }
-        return htmlWrapper.registerServiceEmployee(username,password, UserType.ServiceEmployee)
+    fun registerServiceEmployee(
+        @AuthenticationPrincipal user: User,
+        @RequestParam("name") username: String,
+        @RequestParam("password") password: String
+    ): String {
+        user.authorities.find { it.authority == "ROLE_ADMIN" }
+            ?: return ErrorMessage.NoRights.send() + user.authorities.joinToString { it.authority + "<br>" }
+        return htmlWrapper.registerServiceEmployee(username, password, UserType.ServiceEmployee)
     }
 
 
     @RequestMapping("\${request.customer.deposit}")
     fun deposit(
-            @AuthenticationPrincipal user: User,
-            @RequestParam("amount") amount: BigDecimal
+        @AuthenticationPrincipal user: User,
+        @RequestParam("amount") amount: BigDecimal
     ): String {
         return htmlWrapper.deposit(user, amount)
     }
 
     @RequestMapping("\${request.customer.withdraw}")
-    fun requestWithdrawal(@AuthenticationPrincipal user: User,
-                          @RequestParam("amount") amount: BigDecimal
+    fun requestWithdrawal(
+        @AuthenticationPrincipal user: User,
+        @RequestParam("amount") amount: BigDecimal
     ): String {
         return htmlWrapper.requestWithdrawal(user, amount)
     }
@@ -55,14 +61,17 @@ class WebController  {
     fun showMyPendingWithdrawals(@AuthenticationPrincipal user: User): String {
         return htmlWrapper.showMyPendingWithdrawals(user)
     }
+
     @RequestMapping("\${request.serviceemployee.show.pendingwithdrawals}")
     fun showPendingWithdrawals(@AuthenticationPrincipal user: User): String {
         return htmlWrapper.showPendingWithdrawals(user)
     }
 
     @RequestMapping("\${request.customer.authorize.withdrawal}")
-    fun authorizeWithdrawal(@AuthenticationPrincipal user: User,
-                            @RequestParam("transactionId") transactionId: String)
+    fun authorizeWithdrawal(
+        @AuthenticationPrincipal user: User,
+        @RequestParam("transactionId") transactionId: String
+    )
             : String {
         return htmlWrapper.authorizeWithdrawal(user, transactionId)
 
@@ -73,23 +82,14 @@ class WebController  {
         return htmlWrapper.sortAllCustomersByAmountOfMoney(user)
     }
 
-    @RequestMapping("\${request.customer.show.transactions}")
-    fun showMyTransactions(@AuthenticationPrincipal user: User): String {
-        return htmlWrapper.showMyTransactions(user)
-    }
-
-    @RequestMapping("\${request.customer.show.transactions.fromto}")
-    fun showMyTransactionsFromTo(@AuthenticationPrincipal user: User, @RequestParam("from") from: String, @RequestParam("to") to: String): String {
-        return htmlWrapper.showMyTransactions(user, from, to)
-    }
-    @RequestMapping("\${request.serviceemployee.show.transactions.fromUser.byId}")
-    fun showTransactions(@AuthenticationPrincipal user: User,@RequestParam("userId") userId :String,): String {
-        return htmlWrapper.showTransactionsOf(user,userId)
-    }
-
-    @RequestMapping("\${request.serviceemployee.show.transactions.fromUser.byId.fromto}")
-    fun showTransactionsFromTo(@AuthenticationPrincipal user: User,@RequestParam("userId") userId :String, @RequestParam("from") from: String, @RequestParam("to") to: String): String {
-        return htmlWrapper.showTransactionsOf(user,userId, from, to)
+    @RequestMapping("\${request.show.transactions}")
+    fun showTransactionsFromTo(
+        @AuthenticationPrincipal user: User,
+        @RequestParam("userId", required = false) userId: String?,
+        @RequestParam("from", required = false) from: String?,
+        @RequestParam("to", required = false) to: String?
+    ): String {
+        return htmlWrapper.showTransactionsMeta(user, userId, from, to)
     }
 
     @RequestMapping()
@@ -98,54 +98,14 @@ class WebController  {
 
     }
 
-    @RequestMapping("\${request.customer.show.transactionsum.fromto}")
-    fun showMyTransactionSumFromTo(
-            @AuthenticationPrincipal user: User,
-            @RequestParam("from") from: String, @RequestParam("to") to: String,
+    @RequestMapping("\${request.show.transactionsum}")
+    fun showTransactionSumOf(
+        @AuthenticationPrincipal user: User,
+        @RequestParam("userId", required = false) userId: String?,
+        @RequestParam("from", required = false) from: String?, @RequestParam("to", required = false) to: String?
     ): String {
-        return htmlWrapper.showMyTransactionSum(user, from, to)
+        return htmlWrapper.showTransactionSumMeta(user, userId, from, to)
     }
-    @RequestMapping("\${request.customer.show.transactionsum}")
-    fun showMyTransactionSumFromTo(
-            @AuthenticationPrincipal user: User,
-    ): String {
-        return htmlWrapper.showMyTransactionSum(user)
-    }
-    @RequestMapping("\${request.serviceemployee.show.transactionsum.ofAll}")
-    fun showTransactionSumOfAllUsers(
-            @AuthenticationPrincipal user: User,
-    ): String {
-        return htmlWrapper.showTransactionSumOfAllUsers(user)
-    }
-    @RequestMapping("\${request.serviceemployee.show.transactionsum.ofAll.fromto}")
-    fun showTransactionSumOfAllUsersFromTo(
-            @AuthenticationPrincipal user: User,
-
-            @RequestParam("from") from: String, @RequestParam("to") to: String,
-    ): String {
-        return htmlWrapper.showTransactionSumOfAllUsers(user,from,to)
-    }
-
-    @RequestMapping("\${request.serviceemployee.show.transactionsum.ofUser.fromto}")
-
-    fun showTransactionSumOf(  @AuthenticationPrincipal user: User,
-@RequestParam("userId") userId:String,
-                               @RequestParam("from") from: String, @RequestParam("to") to: String,
-
-     ):String
-    {
-      return   htmlWrapper.showTransactionSumOf(user,userId,from,to)
-    }
-    @RequestMapping("\${request.serviceemployee.show.transactionsum.ofUser}")
-
-    fun showTransactionSumOf(  @AuthenticationPrincipal user: User,
-                               @RequestParam("userId") userId:String,
-
-                               ):String
-    {
-        return   htmlWrapper.showTransactionSumOf(user,userId)
-    }
-
 
 }
 

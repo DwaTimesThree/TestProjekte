@@ -4,7 +4,6 @@ import com.example.agidospring.AppUser
 import com.example.agidospring.Sha
 import com.example.agidospring.UserType
 import com.example.agidospring.getUserDetailsManager
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 
@@ -13,13 +12,18 @@ import org.springframework.stereotype.Service
 class UserService {
     var userList = mutableListOf<AppUser>()
 
+
+    fun identify(user:User):AppUser?
+    {
+        return getAppUserById(createId(user))
+    }
     fun createId(user:User): String {
         return createId(user.username)
     }
 
     fun createId(username: String): String {
         var salt = "5xD1"
-        return Sha().calculateSH256("$salt$username:")
+        return Sha().calculateSH256("$salt$username:").encodeToByteArray().joinToString("")
     }
 
     private fun addAppUser(appUser:AppUser)
