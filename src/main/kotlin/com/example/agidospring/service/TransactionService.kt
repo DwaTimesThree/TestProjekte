@@ -181,8 +181,10 @@ class TransactionService {
     fun transactionsFromUserFromTo(userId: String? = null, from: String?, to: String?): MutableList<Transaction>? {
         var start: ZonedDateTime? = null
         var end: ZonedDateTime? = null
-        from?.let { start = it.YYYYMMDDtoParsableZonedDateTime() ?: return null }
-        to?.let { end = it.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?: return null }
+        var fromx= if(!from.isNullOrEmpty())from else null
+        var tox= if(!to.isNullOrEmpty())to else null
+        fromx?.let { start = it.YYYYMMDDtoParsableZonedDateTime() ?: return null }
+        tox?.let { end = it.YYYYMMDDtoParsableZonedDateTime()?.plusDays(1) ?: return null }
         return transactionsFromUserFromTo(userId, start, end)
     }
 

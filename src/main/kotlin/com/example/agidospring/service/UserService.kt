@@ -13,8 +13,9 @@ class UserService {
     var userList = mutableListOf<AppUser>()
 
 
-    fun identify(user:User):AppUser?
+    fun identify(user:User?):AppUser?
     {
+        if (user==null) return null
         return getAppUserById(createId(user))
     }
     fun createId(user:User): String {

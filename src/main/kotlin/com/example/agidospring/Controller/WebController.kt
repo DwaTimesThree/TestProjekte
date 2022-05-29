@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
+import java.net.URLEncoder
 
 
 @RestController
@@ -65,6 +66,7 @@ class WebController {
     @RequestMapping("\${request.serviceemployee.show.pendingwithdrawals}")
     fun showPendingWithdrawals(@AuthenticationPrincipal user: User): String {
         return htmlWrapper.showPendingWithdrawals(user)
+
     }
 
     @RequestMapping("\${request.customer.authorize.withdrawal}")
@@ -93,7 +95,7 @@ class WebController {
     }
 
     @RequestMapping()
-    fun index(@AuthenticationPrincipal user: User): String {
+    fun index(@AuthenticationPrincipal user: User?): String {
         return htmlWrapper.welcomePage(user)
 
     }

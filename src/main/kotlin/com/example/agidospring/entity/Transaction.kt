@@ -22,7 +22,7 @@ class Transaction(val transactionType: TransactionType, val amount: BigDecimal, 
     fun createTransactionId():String
     {
         var salt = "TNT4U#"
-       return  Sha().calculateSH256("$salt#${actor.userId}#$amount#${actor.name}#${ZonedDateTime.now()}")
+       return  Sha().calculateSH256("$salt#${actor.userId}#$amount#${actor.name}#${ZonedDateTime.now()}").encodeToByteArray().joinToString("")
     }
 
 
