@@ -219,6 +219,7 @@ class HTMLWrapper {
                         add += button("/$v", k)
 
                     }
+                    add+=button("/${env.getProperty("request.serviceemployee.show.richest")}","reichsten User anzeigen")
 
                 }
                 else -> {

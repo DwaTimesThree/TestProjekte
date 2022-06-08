@@ -4,20 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aed7b480-9233-4992-b278-9bf22ffdbb5b" name="Changes" comment="Transaction refactored">
+    <list default="true" id="aed7b480-9233-4992-b278-9bf22ffdbb5b" name="Changes" comment="Kleines Frontend hinzugefügt">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WebController.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WebController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper$htmlWrapTransactionList$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper$htmlWrapTransactionList$1$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper$sortAllCustomersByAmountOfMoney$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper$sortAllCustomersByAmountOfMoney$1$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/HTMLWrapper.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/TransactionService.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/TransactionService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/UserService$sortAllCustomersByAmountOfMoney$lambda-3$$inlined$sortByDescending$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/UserService$sortAllCustomersByAmountOfMoney$lambda-3$$inlined$sortByDescending$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/UserService.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/service/UserService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/Controller/WebController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/Controller/WebController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/entity/Transaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/entity/Transaction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/Transaction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/DepositResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/DepositResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/StandardResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/StandardResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WebController$registerServiceEmployee$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WebController$registerServiceEmployee$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WithdrawalResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/com/example/agidospring/Controller/WithdrawalResponse.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/HTMLWrapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/HTMLWrapper.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/TransactionService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/TransactionService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/UserService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/agidospring/service/UserService.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +83,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/D/IdeaProjects/AgidoSpring/src/main/kotlin/com/example/agidospring&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/TestProjekte&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;,
     &quot;spring.configuration.checksum&quot;: &quot;208f175f9a99065037657bd089d00a5d&quot;
@@ -199,7 +194,13 @@
       <workItem from="1653650698341" duration="7351000" />
       <workItem from="1653726362430" duration="7260000" />
       <workItem from="1653826183752" duration="2785000" />
-      <workItem from="1653842937901" duration="6977000" />
+      <workItem from="1653842937901" duration="7076000" />
+      <workItem from="1653947005402" duration="174000" />
+      <workItem from="1654463636120" duration="2095000" />
+      <workItem from="1654582746839" duration="4882000" />
+      <workItem from="1654624527716" duration="360000" />
+      <workItem from="1654626753441" duration="3077000" />
+      <workItem from="1654647031062" duration="19000" />
     </task>
     <task id="LOCAL-00001" summary="RequestNamen in application.properties ausgelagert">
       <created>1653650484514</created>
@@ -243,7 +244,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653734723820</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Kleines Frontend hinzugefügt">
+      <created>1653850061910</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1653850061910</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -263,6 +271,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="RequestNamen in application.properties ausgelagert" />
     <MESSAGE value="Transaction refactored" />
-    <option name="LAST_COMMIT_MESSAGE" value="Transaction refactored" />
+    <MESSAGE value="Kleines Frontend hinzugefügt" />
+    <option name="LAST_COMMIT_MESSAGE" value="Kleines Frontend hinzugefügt" />
   </component>
 </project>
